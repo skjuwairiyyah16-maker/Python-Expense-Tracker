@@ -141,6 +141,9 @@ st.bar_chart(
     y="Amount (₹)",
     color="#9370DB"
 )
+if "expenses" not in st.session_state:
+    st.session_state.expenses = []
+
 
 st.header("➕ Add New Expense")
 
@@ -156,5 +159,45 @@ amount = st.number_input(
 
 date = st.date_input("Expense Date")
 
-if st.button("Add Expense"):
+if st.button("Add Expenses"):
+    new_expense = {
+        "category": category,
+        "amount": amount,
+        "date": date
+    }
+
+    st.session_state.expenses.append(new_expense)
     st.success("Expense added successfully!")
+
+
+st.subheader("📋 Recorded Expenses")
+
+if st.session_state.expenses:
+    saved_expenses_df = pd.DataFrame(st.session_state.expenses)
+
+    st.dataframe(
+        saved_expenses_df,
+        use_container_width=True,
+        hide_index=True
+    )
+else:
+    st.info("No expenses recorded yet.")
+
+
+
+total_spent = sum(
+    expense["amount"]
+    for expense in st.session_state.expenses
+)
+
+st.metric("Total Recorded Expenses", f"₹{total_spent}")
+
+
+if st.session_state.expenses:
+    st.subheader("📊 Category-wise Spending")
+
+    category_totals = pd.DataFrame(
+        st.session_state.expenses
+    ).groupby("category")["amount"].sum()
+
+    st.bar_chart(category_totals)
